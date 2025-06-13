@@ -1,0 +1,101 @@
+You are joining the Municipal Bonds team at BlackRock. A client has requested insights on their portfolio to assess its characteristics and risks. Your task is to demonstrate analytical and communication skills by processing portfolio data, uncovering key insights, and presenting your findings using best practices in Python, Git, and visualization tools.
+
+ 
+
+Provided Files
+
+You will receive two files:
+
+1.      PortfolioX.xlsx – Portfolio position data
+
+2.      location_data.xlsx – Data on obligor locations
+
+ 
+
+Part I: Git Workflow
+
+Create a code repository for your project using GitHub or Azure DevOps. It should include:
+
+·         Your codebase (scripts, notebooks)
+
+·         A README.md file describing the contents of the repository and how to run the code
+
+·         Clear commit messages that reflect your workflow and iterations
+
+Use version control best practices such as committing often, using descriptive messages, and organizing your work in clear logical steps.
+
+ 
+
+Part II: Data Analysis
+
+Write code (preferably Python, but you may use any other programing language) to analyze the portfolio data. Your analysis should answer the following questions:
+
+1.      How is the portfolio distributed by sector?
+
+o    Summarize the distribution of Par amount across different sectors.
+
+2.      How is credit risk distributed across the portfolio?
+
+o    Calculate the share of obligors that fall into the different rating buckets: AAA, AA, A, BBB, and HY (High Yield; BB and below).
+
+3.      What is the rating coverage of the portfolio?
+
+o    Determine how many obligors have credit ratings versus those that are unrated.
+
+4.      What is the outlook distribution across obligors?
+
+o    Count obligors based on their credit outlook category (e.g., Positive, Stable, Negative).
+
+5.      Who are the largest obligors in the portfolio?
+
+o    Identify the top 10 obligors by total Par value exposure.
+
+6.      What is the portfolio’s maturity profile?
+
+o    Group maturities into the following buckets:
+
+§  <5 years, 5–10 years, 10–15 years, 15–20 years, 20–30 years, 30+ years.
+
+7.      Does the portfolio have any jump risk exposure?
+
+o    Identify obligors that have a significant chance of a downgrade to high-yield (junk) status (i.e., rated BBB with a negative outlook)
+
+8.      How geographically diversified is the portfolio?
+
+o    Calculate portfolio exposure by U.S. state, based on Par value.
+
+Please write clean, well-documented code and use comments to explain your logic. Include visualizations where appropriate (e.g., matplotlib, seaborn, or plotly).
+
+ 
+
+Part III: Visualization App
+
+Develop a simple dashboard using either:
+
+·         Power BI, or
+
+·         Streamlit (or a similar tool for creating code-based web apps)
+
+Your dashboard should:
+
+·         Display a U.S. map showing obligor locations
+
+·         Visualize exposure (Par amount) by obligor
+
+·         Optionally allow filtering by sector
+
+ 
+
+Part IV: Presentation
+
+Create a short PowerPoint presentation summarizing:
+
+·         Your approach and key findings
+
+·         Visual snapshots from your dashboard and visualizations
+
+·         Key insights drawn from the analysis
+
+Ensure your slides are concise and visually clear.
+
+ 
