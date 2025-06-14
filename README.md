@@ -63,8 +63,3 @@ Place these files in the `data/` directory.
 ```bash
 jupyter notebook notebooks/portfolio_analysis.ipynb
 ```
-
-2. To run the Streamlit dashboard:
-```bash
-streamlit run src/visualization/dashboard.py
-``` 
