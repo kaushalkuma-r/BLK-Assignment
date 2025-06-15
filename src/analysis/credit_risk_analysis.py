@@ -1,5 +1,5 @@
 import plotly.express as px
-
+import pandas as pd
 def analyze_credit_risk_distribution(portfolio_data):
     """
     Analyzes and plots the distribution of credit risk across obligors in defined rating buckets.
@@ -66,4 +66,4 @@ def analyze_credit_risk_distribution(portfolio_data):
         font=dict(family="Segoe UI, sans-serif", size=12)
     )
 
-    fig.show()
+    return fig

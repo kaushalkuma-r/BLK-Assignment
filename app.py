@@ -1,99 +1,117 @@
 import streamlit as st
-import pandas as pd
-import plotly.express as px
-from streamlit_lottie import st_lottie
-import json
-from src.generate_map import generate_obligor_map
-from streamlit_folium import st_folium
-import datetime
+from data_loader import load_data
+from visualisations import *
+from src.analysis.sector_analysis import *
+from src.analysis.credit_risk_analysis import *
+from src.analysis.rating_analysis import *
+# Load data
+df = load_data()
 
-# ---------------- Streamlit Config ----------------
-st.set_page_config(page_title="Municipal Bonds Dashboard", layout="wide")
-st.toast(f"🔁 Last run: {datetime.datetime.now().strftime('%H:%M:%S.%f')}")
+# Configure page
+st.set_page_config(layout="wide", page_title="BlackRock Portfolio Dashboard")
+st.title("Municipal Bonds Portfolio Dashboard")
+st.subheader("BlackRock Case Study - Portfolio Analysis")
 
-# ---------------- Caching & Data Loading ----------------
-@st.cache_data
-def load_data():
-    portfolio_data = pd.read_excel("data/PortfolioX.xlsx")
-    location_data = pd.read_excel("data/location_data.xlsx")
-    return portfolio_data, location_data
+# Initialize session state for question toggles
+if 'show_questions' not in st.session_state:
+    st.session_state.show_questions = [False] * 8
 
-@st.cache_data
-def merge_portfolio_with_location(portfolio_data, location_data):
-    portfolio_data = portfolio_data.copy()
-    location_data = location_data.copy()
-    
-    portfolio_data['Obligor Name'] = portfolio_data['Obligor Name'].str.upper().str.strip()
-    location_data['Obligor Name'] = location_data['Obligor Name'].str.upper().str.strip()
-    
-    merged = pd.merge(
-        portfolio_data,
-        location_data[['Obligor Name', 'County', 'State', 'ZIP', 'Latitude', 'Longitude']],
-        on='Obligor Name',
-        how='left'
-    )
+# Sidebar filters
+st.sidebar.header("Portfolio Filters")
 
-    unmatched_count = merged['Latitude'].isna().sum()
-    if unmatched_count > 0:
-        st.warning(f"⚠️ Unmatched rows without location: {unmatched_count}")
-    return merged
+sectors = ['All'] + sorted(df['Sector'].unique().tolist())
+selected_sector = st.sidebar.selectbox("Sector", sectors)
 
-@st.cache_data
-def clean_data(df):
-    df_clean = df.dropna(subset=["Latitude", "Longitude", "Obligor Name"])
-    df_unique = df_clean.drop_duplicates(subset=["Obligor Name", "Latitude", "Longitude"]).reset_index(drop=True)
-    return df_unique
+rating_buckets = ['All'] + sorted(df['Rating_Bucket'].unique().tolist())
+selected_rating = st.sidebar.selectbox("Rating Bucket", rating_buckets)
 
-# ---------------- Visualizations ----------------
-def exposure_by_obligor(portfolio_data):
-    exposure_df = portfolio_data.groupby('Obligor Name', as_index=False)['Par'].sum()
-    exposure_df = exposure_df.sort_values(by='Par', ascending=False).head(20)
+states = ['All'] + sorted(df['State'].unique().tolist())
+selected_state = st.sidebar.selectbox("State", states)
 
-    fig = px.bar(
-        exposure_df,
-        x='Par',
-        y='Obligor Name',
-        orientation='h',
-        title='Top 20 Obligors by Par Exposure',
-        labels={'Par': 'Par Amount', 'Obligor Name': 'Obligor'},
-        color='Par',
-        color_continuous_scale='blackbody'
-    )
+# Apply filters
+filtered_df = df.copy()
+if selected_sector != 'All':
+    filtered_df = filtered_df[filtered_df['Sector'] == selected_sector]
+if selected_rating != 'All':
+    filtered_df = filtered_df[filtered_df['Rating_Bucket'] == selected_rating]
+if selected_state != 'All':
+    filtered_df = filtered_df[filtered_df['State'] == selected_state]
 
-    fig.update_layout(
-        yaxis={'categoryorder': 'total ascending'},
-        height=600,
-        margin=dict(l=10, r=10, t=40, b=10)
-    )
-    return fig
+# Key metrics
+st.header("Portfolio Overview")
+col1, col2, col3, col4 = st.columns(4)
+col1.metric("Total Par Value", f"${filtered_df['Par'].sum():,.0f}")
+col2.metric("Number of Obligors", len(filtered_df))
+col3.metric("Average Coupon", f"{filtered_df['coupon'].mean():.2f}%")
 
-# ---------------- Load & Process Data (Session State) ----------------
-if "portfolio_data" not in st.session_state:
-    portfolio_data, location_data = load_data()
-    merged_data = merge_portfolio_with_location(portfolio_data, location_data)
-    merged_data_unique = clean_data(merged_data)
+jump_risk_df = create_jump_risk(filtered_df)
+col4.metric("Jump Risk Exposure", len(jump_risk_df))
 
-    st.session_state["portfolio_data"] = portfolio_data
-    st.session_state["merged_data"] = merged_data
-    st.session_state["processed_data"] = merged_data_unique
-else:
-    portfolio_data = st.session_state["portfolio_data"]
-    merged_data = st.session_state["merged_data"]
-    merged_data_unique = st.session_state["processed_data"]
+# Map and exposure visualizations
+st.header("Geographic Exposure")
+col1, col2 = st.columns([2, 1])
 
-# ---------------- UI Layout ----------------
-st.title("📊 BlackRock Municipal Bonds Portfolio Dashboard")
+with col1:
+    st.header("Obligor Location Map")
+    map_data = filtered_df[['Obligor Name', 'County', 'State', 'ZIP', 
+                            'Latitude', 'Longitude', 'Sector', 'Par', 
+                            'Rating', 'Outlook']].copy()
+    kepler_html = create_kepler_map(map_data)
+    components.html(kepler_html, height=700)
 
-tab1, tab2 = st.tabs(["📍 Map", "📊 Obligor Exposure"])
+with col2:
+    st.subheader("State Exposure")
+    state_exposure = create_state_exposure(filtered_df)
+    st.plotly_chart(state_exposure, use_container_width=True)
 
-with tab1:
-    map_obj = generate_obligor_map(merged_data_unique)
-    st_folium(map_obj, width=900, height=600)
+# Analysis questions section
+st.header("Portfolio Analysis")
+st.write("Click on questions below to view analysis:")
 
-with tab2:
-    chart = exposure_by_obligor(merged_data)
-    st.plotly_chart(chart, use_container_width=True)
+# Question 1
+with st.expander("1. How is the portfolio distributed by sector?"):
+    fig = analyze_sector_distribution(filtered_df)
+    st.plotly_chart(fig, use_container_width=True)
 
-# ---------------- Footer ----------------
-st.markdown("---")
-st.markdown("👨‍💻 Built for BlackRock Case Study by **Kaushal Kumar**")
+# Question 2
+with st.expander("2. How is credit risk distributed across the portfolio?"):
+    fig = analyze_credit_risk_distribution(filtered_df)
+    st.plotly_chart(fig, use_container_width=True)
+
+# Question 3
+with st.expander("3. What is the rating coverage of the portfolio?"):
+    fig = analyze_rating_coverage_bar(filtered_df)
+    st.plotly_chart(fig, use_container_width=True)
+
+# Question 4
+with st.expander("4. What is the outlook distribution across obligors?"):
+    fig = create_outlook_distribution(filtered_df)
+    st.plotly_chart(fig, use_container_width=True)
+
+# Question 5
+with st.expander("5. Who are the largest obligors in the portfolio?"):
+    fig = create_top_obligors(filtered_df)
+    st.plotly_chart(fig, use_container_width=True)
+
+# Question 6
+with st.expander("6. What is the portfolio's maturity profile?"):
+    fig = create_maturity_profile(filtered_df)
+    st.plotly_chart(fig, use_container_width=True)
+
+# Question 7
+with st.expander("7. Does the portfolio have any jump risk exposure?"):
+    jump_risk = create_jump_risk(filtered_df)
+    if not jump_risk.empty:
+        st.dataframe(jump_risk)
+    else:
+        st.success("No jump risk exposure found in the portfolio")
+
+# Question 8
+with st.expander("8. How geographically diversified is the portfolio?"):
+    state_exposure = create_state_exposure(filtered_df)
+    st.plotly_chart(state_exposure, use_container_width=True)
+    st.write("Geographic diversification is measured by the distribution of exposure across different U.S. states.")
+
+# Data table
+st.header("Portfolio Data")
+st.dataframe(filtered_df)

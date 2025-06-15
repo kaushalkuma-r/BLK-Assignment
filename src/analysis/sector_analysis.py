@@ -52,4 +52,4 @@ def analyze_sector_distribution(portfolio_data):
         showlegend=False
     )
 
-    fig.show()
+    return fig
