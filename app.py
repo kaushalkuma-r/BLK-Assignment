@@ -48,7 +48,6 @@ jump_risk_df = create_jump_risk(filtered_df)
 col4.metric("Jump Risk Exposure", len(jump_risk_df))
 
 # Map and exposure visualizations
-st.header("Geographic Exposure")
 col1, col2 = st.columns([2, 1])
 
 with col1:
@@ -67,50 +66,6 @@ with col2:
 # Analysis questions section
 st.header("Portfolio Analysis")
 st.write("Click on questions below to view analysis:")
-
-# Question 1
-with st.expander("1. How is the portfolio distributed by sector?"):
-    fig = analyze_sector_distribution(filtered_df)
-    st.plotly_chart(fig, use_container_width=True)
-
-# Question 2
-with st.expander("2. How is credit risk distributed across the portfolio?"):
-    fig = analyze_credit_risk_distribution(filtered_df)
-    st.plotly_chart(fig, use_container_width=True)
-
-# Question 3
-with st.expander("3. What is the rating coverage of the portfolio?"):
-    fig = analyze_rating_coverage_bar(filtered_df)
-    st.plotly_chart(fig, use_container_width=True)
-
-# Question 4
-with st.expander("4. What is the outlook distribution across obligors?"):
-    fig = create_outlook_distribution(filtered_df)
-    st.plotly_chart(fig, use_container_width=True)
-
-# Question 5
-with st.expander("5. Who are the largest obligors in the portfolio?"):
-    fig = create_top_obligors(filtered_df)
-    st.plotly_chart(fig, use_container_width=True)
-
-# Question 6
-with st.expander("6. What is the portfolio's maturity profile?"):
-    fig = create_maturity_profile(filtered_df)
-    st.plotly_chart(fig, use_container_width=True)
-
-# Question 7
-with st.expander("7. Does the portfolio have any jump risk exposure?"):
-    jump_risk = create_jump_risk(filtered_df)
-    if not jump_risk.empty:
-        st.dataframe(jump_risk)
-    else:
-        st.success("No jump risk exposure found in the portfolio")
-
-# Question 8
-with st.expander("8. How geographically diversified is the portfolio?"):
-    state_exposure = create_state_exposure(filtered_df)
-    st.plotly_chart(state_exposure, use_container_width=True)
-    st.write("Geographic diversification is measured by the distribution of exposure across different U.S. states.")
 
 # Data table
 st.header("Portfolio Data")
