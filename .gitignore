@@ -15,7 +15,7 @@ __pycache__/
 dist/
 build/
 *.egg-info/
-
+.xlsx#
 # Jupyter Notebook
 .ipynb_checkpoints
 
