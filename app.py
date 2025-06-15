@@ -1,6 +1,6 @@
 import streamlit as st
-from data_loader import load_data
-from visualisations import *
+from src.data_loader import load_data
+from src.visualisations import *
 from src.analysis.sector_analysis import *
 from src.analysis.credit_risk_analysis import *
 from src.analysis.rating_analysis import *
@@ -20,8 +20,7 @@ col1.metric("Total Par Value", f"${df['Par'].sum():,.0f}")
 col2.metric("Number of Obligors", len(df))
 col3.metric("Average Coupon", f"{df['coupon'].mean():.2f}%")
 
-jump_risk_df = create_jump_risk(df)
-col4.metric("Jump Risk Exposure", len(jump_risk_df))
+
 
 # Filters section above maps
 st.header("Portfolio Filters")
@@ -50,21 +49,24 @@ if selected_state != 'All':
 
 # Map and exposure visualizations
 st.header("Geographic Exposure")
-col1, map_col2 = st.columns([1, 1])  # Equal width columns
+map_col1, map_col2 = st.columns(2)  # Two equal columns
 
-with col1:
-    st.header("Obligor Location Map")
+# Set consistent height for both maps
+map_height = 700
+
+with map_col1:
+    st.subheader("Obligor Location Map")
     map_data = filtered_df[['Obligor Name', 'County', 'State', 'ZIP', 
-                            'Latitude', 'Longitude', 'Sector', 'Par', 
-                            'Rating', 'Outlook']].copy()
+                          'Latitude', 'Longitude', 'Sector', 'Par', 
+                          'Rating', 'Outlook']].copy()
     kepler_html = create_kepler_map(map_data)
-    components.html(kepler_html, height=700)
+    components.html(kepler_html, height=map_height)
 
 with map_col2:
     st.subheader("State Exposure")
     state_exposure = create_state_exposure(filtered_df)
-    # Increased size by adjusting height and using_container_width
-    st.plotly_chart(state_exposure, use_container_width=True, height=700)
+    # Use container width and set height to match Kepler map
+    st.plotly_chart(state_exposure, use_container_width=True, height=map_height)
 
 # Data table
 st.header("Portfolio Data")

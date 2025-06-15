@@ -2,12 +2,34 @@
 
 This project analyzes a municipal bonds portfolio to assess its characteristics and risks. The analysis includes sector distribution, credit risk assessment, rating coverage, outlook distribution, and geographic diversification.
 
+## Dashboard Preview
+
+![Dashboard Overview](assets/dashboard1.png)
+![Dashboard Details](assets/dashboard2.png)
+
+## Features
+
+- **Portfolio Overview**: Key metrics including total par value, number of obligors, and average coupon
+- **Interactive Filters**: Filter by sector, rating bucket, and state
+- **Geographic Analysis**: 
+  - Interactive map showing obligor locations
+  - State-level exposure visualization
+- **Data Analysis**:
+  - Sector distribution analysis
+  - Credit risk assessment
+  - Rating coverage analysis
+  - Outlook distribution
+  - Jump risk identification
+
 ## Project Structure
 
 ```
 .
 ├── README.md
 ├── requirements.txt
+├── app.py                 # Main Streamlit dashboard
+├── data_loader.py         # Data loading utilities
+├── visualisations.py      # Visualization functions
 ├── data/
 │   ├── PortfolioX.xlsx
 │   └── location_data.xlsx
@@ -21,10 +43,11 @@ This project analyzes a municipal bonds portfolio to assess its characteristics 
 │   │   ├── maturity_analysis.py
 │   │   ├── jump_risk_analysis.py
 │   │   └── geographic_analysis.py
-│   └── visualization/
-│       └── dashboard.py
-└── notebooks/
-    └── portfolio_analysis.ipynb
+│   └── generate_map.py
+└── assets/
+    ├── background.webp
+    ├── dashboard1.png
+    └── dashboard2.png
 ```
 
 ## Setup Instructions
@@ -57,9 +80,40 @@ The project requires two Excel files:
 
 Place these files in the `data/` directory.
 
-## Running the Analysis
+## Running the Dashboard
 
-1. For interactive analysis, use the Jupyter notebook:
+To run the Streamlit dashboard:
 ```bash
-jupyter notebook notebooks/portfolio_analysis.ipynb
+streamlit run app.py
 ```
+
+## Analysis Components
+
+1. **Sector Analysis**
+   - Distribution of Par amount across sectors
+   - Sector concentration risk assessment
+
+2. **Credit Risk Analysis**
+   - Rating distribution (AAA, AA, A, BBB, HY)
+   - Rating coverage analysis
+   - Outlook distribution
+
+3. **Geographic Analysis**
+   - Interactive map of obligor locations
+   - State-level exposure analysis
+   - Geographic concentration risk
+
+4. **Portfolio Metrics**
+   - Total Par Value
+   - Number of Obligors
+   - Average Coupon
+   - Jump Risk Exposure
+
+## Technologies Used
+
+- Python 3.10+
+- Streamlit
+- Pandas
+- Plotly
+- Kepler.gl
+- Matplotlib/Seaborn
