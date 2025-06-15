@@ -1,39 +1,39 @@
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+from config import shared_color_scale
 
-def analyze_geographic_distribution(df):
-    """
-    Analyze the portfolio's geographic distribution.
-    
-    Args:
-        df (pd.DataFrame): Portfolio data containing 'State' and 'Par' columns
-    
-    Returns:
-        pd.DataFrame: Geographic distribution summary
-    """
-    pass
+def analyze_geographic_diversity(df):
 
-def plot_geographic_distribution(geo_dist):
-    """
-    Create visualization for geographic distribution.
-    
-    Args:
-        geo_dist (pd.DataFrame): Output from analyze_geographic_distribution
-    
-    Returns:
-        plotly.graph_objects.Figure: Choropleth map of geographic distribution
-    """
-    pass
+    if 'State' not in df.columns:
+        print("The dataset does not contain a 'State' column. Please provide the correct column for geographic info.")
+        return
 
-if __name__ == "__main__":
-    # Example usage
-    from data_loader import load_data
+    state_exposure = (
+        df.groupby('State', observed=True)['Par']
+        .sum()
+        .reset_index()
+        .sort_values(by='Par', ascending=False)
+    )
     
-    # Load data
-    df = load_data()
     
-    # Analyze geographic distribution
-    geo_dist = analyze_geographic_distribution(df)
-    print("\nGeographic Distribution Summary:")
-    print(geo_dist) 
+    fig = px.bar(
+        state_exposure,
+        x='State',
+        y='Par',
+        text='Par',
+        title='Portfolio Exposure by U.S. State',
+        labels={'Par': 'Total Par Exposure'},
+        color='Par',
+        color_continuous_scale=shared_color_scale
+    )
+    
+    fig.update_traces(texttemplate='%{text:.2s}', textposition='outside')
+    fig.update_layout(
+        xaxis_tickangle=-45,
+        width=1000,
+        height=500,
+        plot_bgcolor='white'
+    )
+    
+    return fig

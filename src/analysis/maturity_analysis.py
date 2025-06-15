@@ -1,39 +1,47 @@
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
+from datetime import datetime
+from config import shared_color_scale
 
 def analyze_maturity_profile(df):
-    """
-    Analyze the portfolio's maturity profile.
-    
-    Args:
-        df (pd.DataFrame): Portfolio data containing 'maturity' and 'Par' columns
-    
-    Returns:
-        pd.DataFrame: Maturity profile summary
-    """
-    pass
+    df['maturity'] = pd.to_datetime(df['maturity'], errors='coerce')
 
-def plot_maturity_profile(maturity_profile):
-    """
-    Create visualization for maturity profile.
-    
-    Args:
-        maturity_profile (pd.DataFrame): Output from analyze_maturity_profile
-    
-    Returns:
-        plotly.graph_objects.Figure: Bar chart of maturity profile
-    """
-    pass
+    today = pd.Timestamp(datetime.today().date())
 
-if __name__ == "__main__":
-    # Example usage
-    from data_loader import load_data
+    df['years_to_maturity'] = (df['maturity'] - today).dt.days / 365.25
+
+    bins = [0, 5, 10, 15, 20, 30, float('inf')]
+    labels = ['<5 years', '5-10 years', '10-15 years', '15-20 years', '20-30 years', '30+ years']
+
+    df['maturity_bucket'] = pd.cut(df['years_to_maturity'], bins=bins, labels=labels, right=False)
+
+    maturity_summary = (
+        df.groupby('maturity_bucket', observed=True)['Par']
+        .sum()
+        .reset_index()
+        .sort_values('maturity_bucket')
+    )
+
+    fig = px.bar(
+        maturity_summary,
+        x='maturity_bucket',
+        y='Par',
+        text='Par',
+        title='Portfolio Maturity Profile',
+        labels={'Par': 'Total Par Exposure', 'maturity_bucket': 'Maturity Bucket'},
+        color='Par',
+        color_continuous_scale=shared_color_scale
+    )
     
-    # Load data
-    df = load_data()
+    fig.update_traces(texttemplate='%{text:.2s}', textposition='outside')
+    fig.update_layout(
+        width=900,
+        height=500,
+        uniformtext_minsize=8,
+        uniformtext_mode='hide',
+        plot_bgcolor='white',
+        xaxis_title='Maturity Bucket',
+        yaxis_title='Total Par Exposure',
+    )
     
-    # Analyze maturity profile
-    maturity_profile = analyze_maturity_profile(df)
-    print("\nMaturity Profile Summary:")
-    print(maturity_profile) 
+    return fig

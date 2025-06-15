@@ -1,39 +1,46 @@
-import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
+from config import shared_color_scale
 
-def analyze_outlook_distribution(df):
-    """
-    Analyze the distribution of credit outlooks across the portfolio.
+def analyze_outlook_distribution(portfolio_data):
+    portfolio_data['Outlook'] = (
+        portfolio_data['Outlook']
+        .fillna('Unspecified')
+        .astype(str)
+        .str.strip()
+        .str.title()
+    )
     
-    Args:
-        df (pd.DataFrame): Portfolio data containing 'Outlook' column
-    
-    Returns:
-        pd.DataFrame: Outlook distribution summary
-    """
-    pass
+    outlook_counts = (
+        portfolio_data['Outlook']
+        .value_counts()
+        .reset_index()
+        .rename(columns={'index': 'Outlook', 'Outlook': 'Bond_Count'})
+    )
 
-def plot_outlook_distribution(outlook_dist):
-    """
-    Create visualization for outlook distribution.
-    
-    Args:
-        outlook_dist (pd.DataFrame): Output from analyze_outlook_distribution
-    
-    Returns:
-        plotly.graph_objects.Figure: Bar chart of outlook distribution
-    """
-    pass
+    total_bonds = outlook_counts['count'].sum()
+    outlook_counts['Percentage'] = (100 * outlook_counts['count'] / total_bonds).round(1)
 
-if __name__ == "__main__":
-    # Example usage
-    from data_loader import load_data
-    
-    # Load data
-    df = load_data()
-    
-    # Analyze outlook distribution
-    outlook_dist = analyze_outlook_distribution(df)
-    print("\nOutlook Distribution Summary:")
-    print(outlook_dist) 
+    fig = px.bar(
+        outlook_counts.sort_values('count', ascending=True),
+        x='count',
+        y='Bond_Count',
+        orientation='h',
+        text=outlook_counts['Percentage'].apply(lambda x: f"{x}%"),
+        color='Bond_Count',
+        color_discrete_sequence=shared_color_scale,
+        title='Outlook Distribution Across Bonds'
+    )
+
+    fig.update_traces(textposition='outside', textfont_size=12)
+    fig.update_layout(
+        width=900,
+        height=450,
+        xaxis_title='Number of Bonds',
+        yaxis_title='Credit Outlook',
+        showlegend=True,
+        font=dict(family='Segoe UI', size=12),
+        title_font_size=18,
+        plot_bgcolor='white'
+    )
+
+    return fig

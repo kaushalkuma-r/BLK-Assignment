@@ -1,40 +1,36 @@
-import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
+from config import shared_color_scale
 
-def analyze_top_obligors(df, top_n=10):
-    """
-    Identify the largest obligors in the portfolio.
-    
-    Args:
-        df (pd.DataFrame): Portfolio data containing 'Obligor' and 'Par' columns
-        top_n (int): Number of top obligors to return
-    
-    Returns:
-        pd.DataFrame: Top obligors by Par value
-    """
-    pass
+def top_obligors_by_par(portfolio_data, top_n=10):
+    obligor_par = (
+        portfolio_data.groupby('Obligor Name')['Par']
+        .sum()
+        .reset_index()
+        .sort_values(by='Par', ascending=False)
+        .head(top_n)
+    )
 
-def plot_top_obligors(top_obligors):
-    """
-    Create visualization for top obligors.
-    
-    Args:
-        top_obligors (pd.DataFrame): Output from analyze_top_obligors
-    
-    Returns:
-        plotly.graph_objects.Figure: Bar chart of top obligors
-    """
-    pass
+    fig = px.bar(
+        obligor_par.sort_values('Par'), 
+        x='Par',
+        y='Obligor Name',
+        orientation='h',
+        text='Par',
+        color='Obligor Name',
+        color_discrete_sequence=shared_color_scale,
+        title=f'Top {top_n} Obligors by Total Par Value Exposure'
+    )
 
-if __name__ == "__main__":
-    # Example usage
-    from data_loader import load_data
-    
-    # Load data
-    df = load_data()
-    
-    # Analyze top obligors
-    top_obligors = analyze_top_obligors(df)
-    print("\nTop 10 Obligors by Par Value:")
-    print(top_obligors) 
+    fig.update_traces(textposition='outside', texttemplate='%{text:,.0f}')
+    fig.update_layout(
+        width=950,
+        height=500,
+        xaxis_title='Total Par Value',
+        yaxis_title='Obligor Name',
+        showlegend=False,
+        font=dict(size=12),
+        title_font_size=18,
+        plot_bgcolor='white'
+    )
+
+    return fig

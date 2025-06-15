@@ -1,39 +1,56 @@
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+import plotly.express as px
 
 def analyze_jump_risk(df):
-    """
-    Identify obligors at risk of being downgraded to high-yield status.
+    data = df.copy()
+    data['Rating'] = data['Rating'].astype(str).str.upper()
+    data['Outlook'] = data['Outlook'].astype(str).str.upper()
     
-    Args:
-        df (pd.DataFrame): Portfolio data containing 'Rating' and 'Outlook' columns
-    
-    Returns:
-        pd.DataFrame: Jump risk exposure summary
-    """
-    pass
+    jump_risk_df = data[
+        (data['Rating'].str.startswith('BBB')) &
+        (data['Outlook'] == 'DETERIORATING')
+    ]
 
-def plot_jump_risk(jump_risk_df):
-    """
-    Create visualization for jump risk exposure.
-    
-    Args:
-        jump_risk_df (pd.DataFrame): Output from analyze_jump_risk
-    
-    Returns:
-        plotly.graph_objects.Figure: Bar chart of jump risk exposure
-    """
-    pass
+    jump_risk_summary = (
+        jump_risk_df.groupby(['Obligor', 'Rating', 'Outlook'], observed=True)['Par']
+        .sum()
+        .reset_index()
+        .sort_values(by='Par', ascending=False)
+    )
 
-if __name__ == "__main__":
-    # Example usage
-    from data_loader import load_data
+    if jump_risk_summary.empty:
+        print("No obligors found with BBB rating and negative outlook (no jump-to-junk risk identified).")
+    else:
+        print("Potential jump risk obligors:")
+        print(jump_risk_summary.to_string(index=False))
     
-    # Load data
-    df = load_data()
-    
-    # Analyze jump risk
-    jump_risk_df = analyze_jump_risk(df)
-    print("\nJump Risk Exposure Summary:")
-    print(jump_risk_df) 
+        # Plot with orange-red-yellow color scale
+        fig = px.bar(
+            jump_risk_summary,
+            x='Obligor',
+            y='Par',
+            color='Rating',
+            text='Par',
+            title='Jump Risk Exposure: BBB-Rated Obligors with Negative Outlook',
+            labels={'Par': 'Total Par Exposure'},
+            color_discrete_sequence=['#FFA500', '#FF4500', '#FFD700']  # Orange, Red-Orange, Gold
+        )
+        
+        fig.update_traces(
+            textposition='outside',
+            texttemplate='%{text:.0f}'
+        )
+        
+        fig.update_layout(
+            xaxis_tickangle=-45,
+            width=1000,
+            height=500,
+            plot_bgcolor='white',
+            xaxis_title='Obligor',
+            yaxis_title='Total Par Exposure',
+            template='plotly_white'
+        )
+        
+    return fig 
